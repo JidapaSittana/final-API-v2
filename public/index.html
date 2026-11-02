@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ร้านอาหารออนไลน์ (ชุดซ้อม)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: เมนูด้านซ้าย ใบเสร็จ/ตะกร้าด้านขวา (ซ้อนเป็นคอลัมน์เดียวบนมือถือ) แผง API log ด้านล่าง */
+:root{
+  --bg:#f6f4ef; --card:#fffdf8; --ink:#22201c; --muted:#6d685e; --line:#e2ddd1;
+  --chili:#c8471f; --chili-soft:#fbe9e2; --basil:#2f7a46; --basil-soft:#e4f2e8; --amber:#a86a00; --amber-soft:#fbf0d9;
+  --display:"Bai Jamjuree","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai",system-ui,"Segoe UI",Tahoma,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#171614; --card:#211f1c; --ink:#efebe3; --muted:#a59f93; --line:#35322d;
+  --chili:#ff8a5c; --chili-soft:#3b231a; --basil:#6fd08f; --basil-soft:#1a3222; --amber:#f0b44a; --amber-soft:#3a2d12; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left)) 40px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding:22px 0 18px}
+.brand h1{margin:0;font:700 26px/1.2 var(--display)}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.seg{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card)}
+.seg button{border:0;background:none;color:var(--muted);font:600 14px var(--body);padding:7px 16px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.who{font:500 12px var(--mono);color:var(--muted);width:100%;text-align:right}
+button,input{font:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid var(--chili);outline-offset:2px}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+input[type=text],input[type=number]{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:8px 10px;min-width:0}
+h2{font:600 18px/1.3 var(--display);margin:0 0 12px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;font-size:13px;color:var(--muted)}
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.dish{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px;align-content:space-between}
+.dish .name{font-weight:600;line-height:1.35}
+.dish .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.price{font:500 15px var(--mono);font-variant-numeric:tabular-nums}
+.dish.off{opacity:.55}
+.tag{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px}
+.tag.off{background:var(--chili-soft);color:var(--chili)}
+.receipt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;position:sticky;top:12px;display:grid;gap:12px}
+.receipt ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.line{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;font-size:14px}
+.qty{display:inline-flex;align-items:center;gap:4px}
+.qty button{width:24px;height:24px;border-radius:6px;border:1px solid var(--line);background:none;color:var(--ink);cursor:pointer;line-height:1}
+.qty span{min-width:20px;text-align:center;font-family:var(--mono)}
+.sum{border-top:1px dashed var(--line);padding-top:10px;display:grid;gap:2px;font:14px var(--mono);font-variant-numeric:tabular-nums}
+.sum div{display:flex;justify-content:space-between}
+.sum .total{font-weight:600;font-size:16px}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.empty{color:var(--muted);font-size:14px;margin:0}
+.msg{border-radius:8px;padding:8px 10px;font-size:13.5px}
+.msg.ok{background:var(--basil-soft);color:var(--basil)}
+.msg.err{background:var(--chili-soft);color:var(--chili)}
+.track{display:flex;gap:8px}
+.track input{flex:1}
+.status{font:600 12px var(--body);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.st-pending{background:var(--amber-soft);color:var(--amber)}
+.st-preparing{background:var(--chili-soft);color:var(--chili)}
+.st-delivered{background:var(--basil-soft);color:var(--basil)}
+.orders{display:grid;gap:10px}
+.order{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px}
+.order .top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.order .id{font:600 14px var(--mono)}
+.order .items{font-size:13px;color:var(--muted)}
+.order .act{margin-left:auto;display:flex;gap:6px}
+.avail{display:grid;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;max-height:520px;overflow:auto}
+.avail label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px}
+.log{margin-top:30px}
+.log details{background:var(--card);border:1px solid var(--line);border-radius:12px}
+.log summary{cursor:pointer;padding:10px 14px;font-weight:600}
+.log ol{list-style:none;margin:0;padding:0 14px 12px;display:grid;gap:6px;max-height:340px;overflow:auto}
+.log li{font:12.5px/1.5 var(--mono);border-top:1px solid var(--line);padding-top:6px;word-break:break-word}
+.code{font-weight:600}
+.c2{color:var(--basil)}.c4,.c5{color:var(--chili)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>ครัวซ้อมสอบ</h1>
+      <p>หน้าเว็บทดลองของระบบสั่งอาหารออนไลน์ (Express + MySQL)</p>
+    </div>
+    <div class="seg" role="group" aria-label="เลือกบทบาท">
+      <button type="button" id="asCustomer" aria-pressed="true">ลูกค้า</button>
+      <button type="button" id="asStaff" aria-pressed="false">พนักงาน</button>
+    </div>
+    <div class="who" id="who">กำลังขอ token…</div>
+  </header>
+
+  <!-- ลูกค้า -->
+  <div class="layout" id="customerView">
+    <section>
+      <h2>เมนู</h2>
+      <div class="tools">
+        <label><input type="checkbox" id="showOff"> ให้กดสั่งเมนูที่หมดได้ (ลองดู error 409)</label>
+      </div>
+      <div class="menu" id="menu"><p class="empty">กำลังโหลดเมนู…</p></div>
+    </section>
+    <aside class="receipt">
+      <h2>ตะกร้า</h2>
+      <ul id="cart"></ul>
+      <p class="empty" id="cartEmpty">ยังไม่มีรายการ กด “เพิ่ม” ที่เมนูเพื่อเริ่มสั่ง</p>
+      <div class="sum">
+        <div><span>รวม</span><span id="sub">0.00</span></div>
+        <div><span>ส่วนลด</span><span id="disc">0.00</span></div>
+        <div class="total"><span>สุทธิ</span><span id="tot">0.00</span></div>
+      </div>
+      <p class="hint">ยอดเงินจริงคิดที่ server จากราคาใน DB · ครบ 500 บาทลด 10%</p>
+      <label for="cname" class="hint">ชื่อผู้สั่ง</label>
+      <input type="text" id="cname" placeholder="เช่น สมชาย" maxlength="100">
+      <button class="btn" id="place" type="button" disabled>ยืนยันการสั่ง</button>
+      <div id="placeMsg" hidden></div>
+      <div>
+        <label for="trackId" class="hint">ติดตามคำสั่งซื้อ (ใส่เลข order)</label>
+        <div class="track"><input type="number" id="trackId" min="1" placeholder="เช่น 1"><button class="btn ghost small" id="trackBtn" type="button">ดู</button></div>
+      </div>
+      <div id="trackOut" hidden></div>
+    </aside>
+  </div>
+
+  <!-- พนักงาน -->
+  <div class="layout" id="staffView" hidden>
+    <section>
+      <h2>คำสั่งซื้อทั้งหมด</h2>
+      <div class="tools"><button class="btn ghost small" id="reload" type="button">โหลดใหม่</button><span>ลำดับสถานะ: pending → preparing → delivered</span></div>
+      <div class="orders" id="orders"></div>
+    </section>
+    <aside>
+      <h2>เปิด/ปิดเมนู</h2>
+      <div class="avail" id="avail"></div>
+    </aside>
+  </div>
+
+  <section class="log">
+    <details open>
+      <summary>API log (request ล่าสุดอยู่บนสุด)</summary>
+      <ol id="log"></ol>
+    </details>
+  </section>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const baht = (n) => Number(n).toFixed(2);
+const NEXT = { pending: "preparing", preparing: "delivered" };
+const state = { role: "customer", tokens: {}, menu: [], cart: new Map() };
+
+async function api(method, path, body) {
+  const headers = { "Content-Type": "application/json" };
+  const token = state.tokens[state.role];
+  if (token && !path.startsWith("/api/v1/auth")) headers.Authorization = "Bearer " + token;
+  let status = 0, json = null;
+  try {
+    const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+    status = res.status;
+    json = await res.json().catch(() => null);
+  } catch (e) {
+    json = { error: { code: "NETWORK", message: "เชื่อมต่อ server ไม่ได้ ตรวจว่ารัน npm start อยู่" } };
+  }
+  log(method, path, body, status, json);
+  return { status, json };
+}
+function log(method, path, body, status, json) {
+  const li = document.createElement("li");
+  const cls = "c" + String(status)[0];
+  const short = JSON.stringify(json && json.error ? json.error : json && json.data !== undefined ? json.data : json);
+  li.innerHTML = `<span class="code ${cls}">${status || "ERR"}</span> ${esc(method)} ${esc(path)}` +
+    (body ? `<br>→ ${esc(JSON.stringify(body))}` : "") +
+    `<br>← ${esc(short && short.length > 300 ? short.slice(0, 300) + "…" : short)}`;
+  $("#log").prepend(li);
+}
+const errText = (r) => (r.json && r.json.error ? `${r.status} ${r.json.error.code}: ${r.json.error.message}` : `HTTP ${r.status}`);
+
+async function getToken(role) {
+  if (state.tokens[role]) return;
+  const r = await api("POST", "/api/v1/auth/demo-token", { role });
+  if (r.status === 200) state.tokens[role] = r.json.data.token;
+}
+async function setRole(role) {
+  state.role = role;
+  $("#asCustomer").setAttribute("aria-pressed", role === "customer");
+  $("#asStaff").setAttribute("aria-pressed", role === "staff");
+  $("#customerView").hidden = role !== "customer";
+  $("#staffView").hidden = role !== "staff";
+  await getToken(role);
+  $("#who").textContent = state.tokens[role] ? `ใช้ JWT ของ role: ${role}` : "ขอ token ไม่สำเร็จ ดู API log";
+  if (role === "staff") loadStaff(); else loadMenu();
+}
+
+// ---------- ลูกค้า ----------
+async function loadMenu() {
+  const r = await api("GET", "/api/v1/menu");
+  if (r.status !== 200) { $("#menu").innerHTML = `<p class="msg err">${esc(errText(r))}</p>`; return; }
+  state.menu = r.json.data;
+  renderMenu();
+}
+function renderMenu() {
+  const allowOff = $("#showOff").checked;
+  $("#menu").innerHTML = state.menu.map((m) => {
+    const off = !m.available;
+    return `<div class="dish${off ? " off" : ""}">
+      <div class="name">${esc(m.name)}</div>
+      <div class="row"><span class="price">฿${baht(m.price)}</span>${off ? '<span class="tag off">หมด</span>' : ""}</div>
+      <button class="btn small" type="button" data-add="${m.id}" ${off && !allowOff ? "disabled" : ""}>เพิ่ม</button>
+    </div>`;
+  }).join("");
+}
+function renderCart() {
+  const lines = [...state.cart.entries()];
+  $("#cartEmpty").hidden = lines.length > 0;
+  $("#cart").innerHTML = lines.map(([id, q]) => {
+    const m = state.menu.find((x) => x.id === id);
+    return `<li class="line"><span>${esc(m.name)}</span>
+      <span class="qty"><button type="button" data-dec="${id}" aria-label="ลด">−</button><span>${q}</span><button type="button" data-inc="${id}" aria-label="เพิ่ม">+</button></span>
+      <span class="price">${baht(m.price * q)}</span></li>`;
+  }).join("");
+  const sub = lines.reduce((s, [id, q]) => s + Number(state.menu.find((x) => x.id === id).price) * q, 0);
+  const disc = sub >= 500 ? sub * 0.1 : 0;
+  $("#sub").textContent = baht(sub);
+  $("#disc").textContent = disc ? "-" + baht(disc) : "0.00";
+  $("#tot").textContent = baht(sub - disc);
+  $("#place").disabled = lines.length === 0;
+}
+$("#menu").addEventListener("click", (e) => {
+  const id = Number(e.target.dataset.add);
+  if (!id) return;
+  state.cart.set(id, (state.cart.get(id) || 0) + 1);
+  renderCart();
+});
+$("#cart").addEventListener("click", (e) => {
+  const inc = Number(e.target.dataset.inc), dec = Number(e.target.dataset.dec);
+  if (inc) state.cart.set(inc, state.cart.get(inc) + 1);
+  if (dec) { const q = state.cart.get(dec) - 1; q > 0 ? state.cart.set(dec, q) : state.cart.delete(dec); }
+  renderCart();
+});
+$("#showOff").addEventListener("change", renderMenu);
+function showMsg(el, ok, html) { el.hidden = false; el.className = "msg " + (ok ? "ok" : "err"); el.innerHTML = html; }
+
+$("#place").addEventListener("click", async () => {
+  const body = {
+    customer_name: $("#cname").value,
+    items: [...state.cart.entries()].map(([menu_item_id, quantity]) => ({ menu_item_id, quantity })),
+  };
+  const r = await api("POST", "/api/v1/orders", body);
+  if (r.status === 201) {
+    const d = r.json.data;
+    showMsg($("#placeMsg"), true, `สั่งสำเร็จ order #${d.id} · สุทธิ ฿${baht(d.total)} · สถานะ ${esc(d.status)}`);
+    state.cart.clear(); renderCart();
+    $("#trackId").value = d.id;
+  } else {
+    showMsg($("#placeMsg"), false, esc(errText(r)));
+  }
+});
+$("#trackBtn").addEventListener("click", async () => {
+  const id = $("#trackId").value.trim();
+  if (!id) return;
+  const r = await api("GET", "/api/v1/orders/" + encodeURIComponent(id));
+  if (r.status !== 200) return showMsg($("#trackOut"), false, esc(errText(r)));
+  const o = r.json.data;
+  showMsg($("#trackOut"), true,
+    `#${o.id} ${esc(o.customer_name)} · <span class="status st-${esc(o.status)}">${esc(o.status)}</span><br>` +
+    o.items.map((i) => `${esc(i.name)} × ${i.quantity}`).join(", ") + `<br>สุทธิ ฿${baht(o.total)}`);
+});
+
+// ---------- พนักงาน ----------
+async function loadStaff() {
+  const [o, m] = await Promise.all([api("GET", "/api/v1/orders"), api("GET", "/api/v1/menu")]);
+  if (o.status !== 200) $("#orders").innerHTML = `<p class="msg err">${esc(errText(o))}</p>`;
+  else $("#orders").innerHTML = o.json.data.map((x) => `
+    <div class="order">
+      <div class="top"><span class="id">#${x.id}</span><span>${esc(x.customer_name)}</span>
+        <span class="status st-${esc(x.status)}">${esc(x.status)}</span>
+        <span class="act">
+          ${NEXT[x.status] ? `<button class="btn small" type="button" data-id="${x.id}" data-to="${NEXT[x.status]}">เปลี่ยนเป็น ${NEXT[x.status]}</button>` : ""}
+          <button class="btn ghost small" type="button" data-id="${x.id}" data-to="pending" title="ทดลองย้อนสถานะ ควรได้ 409">ย้อนเป็น pending</button>
+        </span></div>
+      <div class="items">${x.items.map((i) => `${esc(i.name)} × ${i.quantity}`).join(", ") || "ไม่มีรายการ"} · สุทธิ ฿${baht(x.total)}</div>
+    </div>`).join("") || '<p class="empty">ยังไม่มีคำสั่งซื้อ</p>';
+  if (m.status === 200) {
+    state.menu = m.json.data;
+    $("#avail").innerHTML = state.menu.map((x) => `<label><span>${esc(x.name)}</span><input type="checkbox" data-menu="${x.id}" ${x.available ? "checked" : ""}></label>`).join("");
+  }
+}
+$("#orders").addEventListener("click", async (e) => {
+  const b = e.target.closest("button[data-to]");
+  if (!b) return;
+  await api("PATCH", `/api/v1/orders/${b.dataset.id}/status`, { status: b.dataset.to });
+  loadStaff();
+});
+$("#avail").addEventListener("change", async (e) => {
+  const id = e.target.dataset.menu;
+  if (!id) return;
+  const r = await api("PATCH", `/api/v1/menu/${id}/availability`, { available: e.target.checked });
+  if (r.status !== 200) e.target.checked = !e.target.checked;
+});
+$("#reload").addEventListener("click", loadStaff);
+$("#asCustomer").addEventListener("click", () => setRole("customer"));
+$("#asStaff").addEventListener("click", () => setRole("staff"));
+
+renderCart();
+setRole("customer");
+</script>
+</body>
+</html>
